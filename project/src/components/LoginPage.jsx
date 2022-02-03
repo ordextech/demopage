@@ -10,6 +10,7 @@ function LoginPage({setIsUserSignedIn})
         signInWithPopup(auth, provider).then((result) => {
             localStorage.setItem("isUserSignedIn",true);
             localStorage.setItem("email",result.user.email);
+            localStorage.setItem("username", result.user.displayName);
             setIsUserSignedIn(true);
             navigate("/");
         });
@@ -19,7 +20,7 @@ function LoginPage({setIsUserSignedIn})
         <div className="loginPage text-center">
             <p>Sign In With Google to Continue</p>
             <button className="btn btn-log" onClick={signInWithGoogle}>
-                <i class="fab fa-google me-2"></i> Sign in with google
+                <i className="fab fa-google me-2"></i> Sign in with google
             </button>
         </div>
     );

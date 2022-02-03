@@ -14,10 +14,6 @@ import { auth } from './services/firebase';
 import { signOut } from "firebase/auth";
 import logo from "./img/nav-logo.png";
 
-/**
- * @author Jahnvi Vyas
-*/
-
 function App() 
 {
   const [isUserSignedIn, setIsUserSignedIn] = useState(localStorage.getItem("isUserSignedIn"));
@@ -48,7 +44,7 @@ function App()
                 <li>
                 <Link to="/login" className="nav-link">
                   <button className='btn btn-log'>
-                  <i class="fas fa-sign-in-alt me-2"></i>Login</button>
+                  <i className="fas fa-sign-in-alt me-2"></i>Login</button>
                 </Link>
                 </li>
               ) : (
@@ -58,7 +54,7 @@ function App()
                     <Link to="/createpost" className="nav-link">Create Post</Link>
                   </li>
                   <li><button className='btn btn-log' onClick={signUserOut}>
-                  <i class="fas fa-sign-out-alt me-2"></i>Log Out</button></li>
+                  <i className="fas fa-sign-out-alt me-2"></i>Log Out</button></li>
                 </>
               )}
             </ul>

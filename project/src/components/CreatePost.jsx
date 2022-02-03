@@ -7,7 +7,7 @@ function CreatePost({isUserSignedIn})
 {
     const [subject,setSubject] = useState("");
     const [body,setBody] = useState("");
-    const postCollectionRef = collection(db,"posts");
+    const postCollectionRef = collection(db, "posts");
     let navigate= useNavigate();
 
     const submitPost = async () => {
@@ -16,7 +16,7 @@ function CreatePost({isUserSignedIn})
             body,
             authorId : auth.currentUser.uid,
             authorName : auth.currentUser.displayName,
-            authorDomain : auth.currentUser.email.split("@")[1]
+            authorDomain : auth.currentUser.email.split("@")[1],
         });
         navigate("/");
     };
