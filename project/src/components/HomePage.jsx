@@ -3,8 +3,9 @@ import { getDocs,collection, where,  query } from "firebase/firestore";
 import { db } from "../services/firebase";
 import Modal from "react-bootstrap/Modal";
 import Comments from "./modals/Comments";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CreateChannel from "./CreateChannel";
+import Posts from "./Posts";
 
 function HomePage({isUserSignedIn})
 {
@@ -12,27 +13,21 @@ function HomePage({isUserSignedIn})
     const [postList, setPostList] = useState([]);
     const [postId, setPostId] = useState();
     const [channels, setChannels] = useState([]);
+    const [showPosts, setShowPosts] = useState(false);
+    const [selectedChannel, setSelectedChannel] = useState("");
+
+    const location = useLocation();
 
     const emailVarify = localStorage.getItem("email");
     const q = query(collection(db, "channels"), where("channelDomain", "==", 
-    emailVarify!==null?emailVarify.split("@")[1]:""));
+    emailVarify !== null ? emailVarify.split("@")[1]  :""));
     
     let navigate = useNavigate();
     
     useEffect(() => {
-        //getPosts();
         getMyChannels();
     },[]);
 
-    const getPosts = async () => {
-        let items =[];
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-            let data = doc.data()
-            items.push({id : doc.id, name : data.name});
-        });
-        setPostList(items);
-    };
 
     const getMyChannels = async () => {
         let items =[];
@@ -48,15 +43,21 @@ function HomePage({isUserSignedIn})
         setChannels(channels.concat([channel]));
     }
 
-    const viewPost = (id) => {
-        navigate('/viewpost', { state : {
-            postId: id,
-        }})
+    const viewPosts = (item) => {
+        setShowPosts(true);
+        setSelectedChannel(item);
     }
 
-    const reply = async (id) => {
-        setCommentShow(true);
-        setPostId(id);
+    const selectedPostStyle = {
+        textAlign: 'center',
+        cursor: 'pointer',
+        color: 'white',
+        backgroundColor: 'black'
+    };
+
+    if(location.state !== null && location.state !== undefined && selectedChannel === "")
+    {
+        viewPosts(location.state);
     }
     
     return(
@@ -65,23 +66,24 @@ function HomePage({isUserSignedIn})
             <div className="row">
                 <div className="col-md-3">
                     <span className="my-3"><h3>My Channels</h3></span>
-                    {/* <div className="card my-2" style={{textAlign : "center"}}>Channel 1</div>
-                    <div className="card my-2" style={{textAlign : "center"}}>Channel 2</div>
-                    <div className="card my-2" style={{textAlign : "center"}}>Channel 3</div>
-                    <div className="card my-2" style={{textAlign : "center"}}>Channel 4</div>
-                    <div className="card my-2" style={{textAlign : "center"}}>Channel 5</div> */}
                     {channels.map((item) => {
                         return (
-                            <div className="card my-2" style={{textAlign : "center"}}>
+                            <div className="card my-2" style={item.id === selectedChannel.id ? selectedPostStyle : {textAlign : "center", cursor : "pointer" }} onClick={() => {viewPosts(item)}}>
                                 {item.channelName}
                             </div>
                         );
                     })}
                 </div>
-                <div className="col-md-6">
-                {isUserSignedIn && 
-                    <CreateChannel addNewChannel = {addNewChannel}/>
-                }
+                <div className="col-md-6 my-3">
+                    {isUserSignedIn && 
+                        <CreateChannel addNewChannel = {addNewChannel}/>
+                    }
+                    {showPosts &&
+
+                        <div className="container" style = {{cursor  : "pointer"}}>
+                            <Posts channel = {selectedChannel}/>
+                        </div>
+                    }
                 </div>
                 <Modal
                 show={commentShow}

@@ -8,33 +8,47 @@ function Comments({postId,onHide})
     const [comment, setComment] = useState("");
     const [commentList, setCommentList] = useState([]);
     const commentsCollectionRef = collection(db,"comments");
+    const notificationRef = collection(db, "inbox");
     
     const submitComment = async () => {
-        await addDoc(commentsCollectionRef, {
-            comment,
-            postId,
-            authorName : auth.currentUser.displayName,
-            authorId : auth.currentUser.uid,
-        });
+        if(comment.trim() === "" || comment === null)
+        {
+            alert("Please add comment");
+        }
+        else {
+            const newComment = await addDoc(commentsCollectionRef, {
+                comment,
+                postId,
+                authorName : auth.currentUser.displayName,
+                authorId : auth.currentUser.uid,
+            });
+            await addDoc(notificationRef, {
+                audienceId : auth.currentUser.uid,
+                relationId : newComment.id,
+                relationType : "Comment",
+                isDone : false 
+            });
+            setComment("");
+        }   
     };
 
     useEffect(() => {
-        const getPosts = async () => {
+        const getComments = async () => {
             const data = await getDocs(commentsCollectionRef);
             setCommentList(data.docs.map((doc) => ({
                 ...doc.data(), id:doc.id
             })));
         };
-        getPosts();
+        getComments();
     });
     return (
     <div className='container p-3'>
         <div className="commentStyle ">
             <div className="col-12">
                 <label className="form-label">Comment:</label>
-                <input type="text" className="form-control" onChange={(e) => {setComment(e.target.value)}} required/>
+                <input type="text" className="form-control" value={comment} onChange={(e) => {setComment(e.target.value)}} required/>
             </div>
-            <button className="btn btn-log my-4 text-start" onClick={submitComment}>Submit</button>
+            <button className="btn btn-dark my-4 text-start" onClick={submitComment}>Comment</button>
         </div>
     
 

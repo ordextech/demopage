@@ -51,7 +51,7 @@ function App()
                 <>
                   
                   <li>
-                    <Link to="/createpost" className="nav-link">Create Post</Link>
+                    <Link to="/createpost" className="nav-link">Inbox(0)</Link>
                   </li>
                   <li><button className='btn btn-log' onClick={signUserOut}>
                   <i className="fas fa-sign-out-alt me-2"></i>Log Out</button></li>

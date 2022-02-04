@@ -22,7 +22,6 @@ function CreateChannel(props) {
                 channelDomain : domain,
                 channelName : channelName
             });
-            console.log(newChannel.id);
             props.addNewChannel({id : newChannel.id, channelName : channelName});
             setChannelName("");
             setShowForm(false);
@@ -36,7 +35,7 @@ function CreateChannel(props) {
 
     return (
         <div className='container'>
-            <div className="btn btn-info" onClick={() => {setShowForm(true)}}>
+            <div className="btn btn-dark" onClick={() => {setShowForm(true)}}>
                 Create New Channel
             </div>
             {showForm &&
@@ -46,7 +45,7 @@ function CreateChannel(props) {
                             <label htmlFor="channelName" className="form-label">Channel Name</label>
                             <input type="text" className="form-control" id="channelName" name = "channelName" value={channelName} onChange={handleInput} />
                         </div>
-                        <button type="submit" className="btn btn-primary" onClick={createChannel}>Create</button>
+                        <button type="submit" className="btn btn-dark" onClick={createChannel}>Create</button>
                     </form>
                 </div>
             }
