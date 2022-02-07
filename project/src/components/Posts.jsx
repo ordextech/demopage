@@ -35,6 +35,7 @@ function Posts({channel}) {
     const viewPost = (id) => {
         navigate('/viewpost', { state : {
             postId: id,
+            channel : channel
         }})
     }
 

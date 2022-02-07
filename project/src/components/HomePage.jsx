@@ -6,6 +6,7 @@ import Comments from "./modals/Comments";
 import { useLocation, useNavigate } from "react-router-dom";
 import CreateChannel from "./CreateChannel";
 import Posts from "./Posts";
+import Channels from "./Channels";
 
 function HomePage({isUserSignedIn})
 {
@@ -18,9 +19,9 @@ function HomePage({isUserSignedIn})
 
     const location = useLocation();
 
-    const emailVarify = localStorage.getItem("email");
+    const email = localStorage.getItem("email");
     const q = query(collection(db, "channels"), where("channelDomain", "==", 
-    emailVarify !== null ? emailVarify.split("@")[1]  :""));
+    email !== null ? email.split("@")[1]  :""));
     
     let navigate = useNavigate();
     
@@ -48,13 +49,6 @@ function HomePage({isUserSignedIn})
         setSelectedChannel(item);
     }
 
-    const selectedPostStyle = {
-        textAlign: 'center',
-        cursor: 'pointer',
-        color: 'white',
-        backgroundColor: 'black'
-    };
-
     if(location.state !== null && location.state !== undefined && selectedChannel === "")
     {
         viewPosts(location.state);
@@ -64,19 +58,10 @@ function HomePage({isUserSignedIn})
     <div className="container homePage">
         <div className="col-12">
             <div className="row">
-                <div className="col-md-3">
-                    <span className="my-3"><h3>My Channels</h3></span>
-                    {channels.map((item) => {
-                        return (
-                            <div className="card my-2" style={item.id === selectedChannel.id ? selectedPostStyle : {textAlign : "center", cursor : "pointer" }} onClick={() => {viewPosts(item)}}>
-                                {item.channelName}
-                            </div>
-                        );
-                    })}
-                </div>
+                <Channels channels = {channels} selectedChannel = {selectedChannel} viewPosts = {viewPosts} inbox = {false}></Channels>
                 <div className="col-md-6 my-3">
                     {isUserSignedIn && 
-                        <CreateChannel addNewChannel = {addNewChannel}/>
+                        <CreateChannel addNewChannel = {addNewChannel} />
                     }
                     {showPosts &&
 

@@ -7,12 +7,13 @@ import {
   Link
 } from "react-router-dom";
 import HomePage from './components/HomePage';
-import CreatePost from './components/CreatePost';
+import Inbox from './components/Inbox';
 import LoginPage from './components/LoginPage';
 import ViewPost from './components/ViewPost';
 import { auth } from './services/firebase';
 import { signOut } from "firebase/auth";
 import logo from "./img/nav-logo.png";
+import CreatePost from './components/CreatePost';
 
 function App() 
 {
@@ -51,7 +52,7 @@ function App()
                 <>
                   
                   <li>
-                    <Link to="/createpost" className="nav-link">Inbox(0)</Link>
+                    <Link to="/inbox" className="nav-link">Inbox</Link>
                   </li>
                   <li><button className='btn btn-log' onClick={signUserOut}>
                   <i className="fas fa-sign-out-alt me-2"></i>Log Out</button></li>
@@ -63,6 +64,7 @@ function App()
       </nav>
       <Routes>
         <Route path="/" element={<HomePage isUserSignedIn={isUserSignedIn}/>}/>
+        <Route path="/inbox" element={<Inbox isUserSignedIn={isUserSignedIn}/>}/>
         <Route path="/createpost" element={<CreatePost isUserSignedIn={isUserSignedIn}/>}/>
         <Route path="/viewpost" element={<ViewPost postId/>}/>
         <Route path="/login" element={<LoginPage setIsUserSignedIn={setIsUserSignedIn}/>}/>

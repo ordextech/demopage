@@ -2,8 +2,9 @@ import React from 'react';
 import { useState, useEffect } from "react";
 import {addDoc, collection, getDocs} from "firebase/firestore";
 import { auth, db } from "../../services/firebase";
+import { addToInbox } from "../../hooks/getInboxData";
 
-function Comments({postId,onHide}) 
+function Comments({postId, onHide, channel}) 
 {
     const [comment, setComment] = useState("");
     const [commentList, setCommentList] = useState([]);
@@ -22,12 +23,17 @@ function Comments({postId,onHide})
                 authorName : auth.currentUser.displayName,
                 authorId : auth.currentUser.uid,
             });
-            await addDoc(notificationRef, {
-                audienceId : auth.currentUser.uid,
-                relationId : newComment.id,
+            const domain = auth.currentUser.email.split("@")[1];
+            const inboxData = {
+                authorId : auth.currentUser.uid, 
+                authorName : auth.currentUser.displayName,
+                channelName : channel.channelName,
+                channelId : channel.id, 
+                sourceId : postId,
+                organizationDomain : domain,
                 relationType : "Comment",
-                isDone : false 
-            });
+            }
+            addToInbox(inboxData);
             setComment("");
         }   
     };

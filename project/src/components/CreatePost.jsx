@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import {addDoc, collection} from "firebase/firestore";
+import {addDoc, collection, getDocs, query, where} from "firebase/firestore";
 import { auth, db } from "../services/firebase";
 import {useNavigate, useLocation} from "react-router-dom";
-
+import { addToInbox } from "../hooks/getInboxData";
 
 function CreatePost({isUserSignedIn})
 {
@@ -11,7 +11,6 @@ function CreatePost({isUserSignedIn})
     const [subject,setSubject] = useState("");
     const [body,setBody] = useState("");
     const postCollectionRef = collection(db, "posts");
-    const notificationRef = collection(db, "inbox");
     let navigate= useNavigate();
 
     const submitPost = async () => {
@@ -31,12 +30,18 @@ function CreatePost({isUserSignedIn})
                 authorName : auth.currentUser.displayName,
                 channelId : channel.id
             });
-            await addDoc(notificationRef, {
-                audienceId : auth.currentUser.uid,
-                relationId : newPost.id,
+            const domain = auth.currentUser.email.split("@")[1];
+            const inboxData = {
+                authorId : auth.currentUser.uid, 
+                authorName : auth.currentUser.displayName,
+                channelName : channel.channelName,
+                channelId : channel.id, 
+                sourceId : newPost.id,
+                organizationDomain : domain,
                 relationType : "Post",
-                isDone : false 
-            });
+            }
+            addToInbox(inboxData);
+            
             navigate("/", {state : channel});
         }
         

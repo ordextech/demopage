@@ -13,6 +13,7 @@ function ViewPost()
 
     const [postList, setPostList] = useState([]);
     const postId = state.postId;
+    const channel = state.channel;
 
     useEffect(() => {
         getPosts();
@@ -30,7 +31,7 @@ function ViewPost()
         <div div className="col-8 container ">
             {postList.map((p) => {
                 return (
-                    p.id===postId ? (
+                    p.id === postId ? (
                     <div className='my-5 bg-light p-4'>
                         <h6>
                             @{p.authorName}
@@ -49,7 +50,7 @@ function ViewPost()
             })} 
                 <h4>Comments </h4>
                 <div className="comment_page">
-                    <Comments postId={postId}/>
+                    <Comments postId={postId} channel = {channel}/>
                 </div>
         </div>
   );

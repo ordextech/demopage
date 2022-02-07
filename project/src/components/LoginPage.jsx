@@ -1,20 +1,78 @@
-import {auth,provider} from "../services/firebase";
-import { signInWithPopup } from "firebase/auth";
+import {db} from "../services/firebase";
+import {addDoc, collection, getDocs, where,  query, updateDoc, doc} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import firebase from "firebase/compat/app";
 
 function LoginPage({setIsUserSignedIn})
 {
     let navigate = useNavigate();
+    const loginAuth = firebase.auth();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
     
+    const addUser = async(userId, email) => {
+        if((userId !== undefined || userId !== "") && (email !== undefined || email !== ""))
+        {
+            const organizationDomain = email.split("@")[1];
+            const orgCollectionRef = collection(db, "organizations");
+            const q = query(orgCollectionRef, where("domain", "==", organizationDomain));
+            const querySnapshot = await getDocs(q);
+            let data, id;
+            if (querySnapshot.size > 0) {
+                querySnapshot.forEach((doc) => {
+                    data = doc.data();
+                    id = doc.id
+                }); 
+                try{
+                    await updateDoc(doc(db, "organizations", id), {users : data.users + "," + userId})
+                }
+                catch(error)
+                {
+                    console.log(error);
+                }
+            } else {
+                await addDoc(orgCollectionRef, {
+                    domain : email.split("@")[1],
+                    users : userId
+                });
+            }
+        }
+        
+    }
+
     const signInWithGoogle = () => {
-        signInWithPopup(auth, provider).then((result) => {
+        loginAuth.signInWithPopup(googleProvider).then(async(res) => {
+            //Add New user to Team
+            if(res.additionalUserInfo.isNewUser)
+            {
+                try {
+                    addUser(res.user.uid, res.user.email);
+                } 
+                catch (error) {
+                    console.log(error);
+                }
+            }
             localStorage.setItem("isUserSignedIn",true);
-            localStorage.setItem("email",result.user.email);
-            localStorage.setItem("username", result.user.displayName);
-            setIsUserSignedIn(true);
+            localStorage.setItem("email",res.user.email);
+            localStorage.setItem("username", res.user.displayName);
+            localStorage.setItem("userId", res.user.uid);
             navigate("/");
+        }).catch((error) => {
+            console.log(error.message)
         });
-    };
+    }
+    
+    // const signInWithGoogle = () => {
+    //     signInWithPopup(auth, provider).then((result) => {
+    //         localStorage.setItem("isUserSignedIn",true);
+    //         localStorage.setItem("email",result.user.email);
+    //         localStorage.setItem("username", result.user.displayName);
+    //         console.log(result.additionalUserInfo);
+    //         setIsUserSignedIn(true);
+    //         navigate("/");
+    //     });
+    // };
+
+
 
     return(
         <div className="loginPage text-center">
