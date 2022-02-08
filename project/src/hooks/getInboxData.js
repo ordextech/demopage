@@ -6,7 +6,10 @@ const getNotificationCount = async(userId) => {
     try
     {
         const orgCollectionRef = collection(db, "inbox");
-        const q = query(orgCollectionRef, where("audienceId", "==", userId));
+        const queryConstraints = [];
+        queryConstraints.push(where("isDone", "==", false));
+        queryConstraints.push(where("audienceId", "==", userId));
+        const q = query(orgCollectionRef, ...queryConstraints);
         const querySnapshot = await getDocs(q);
         const notificationCount = await querySnapshot.size;
         return notificationCount;
@@ -39,7 +42,8 @@ export const addToInbox = async(inboxData) => {
                 channelName : inboxData.channelName,
                 relationId : inboxData.sourceId,
                 relationType : inboxData.relationType,
-                audienceId : user
+                audienceId : user,
+                isDone : false
             });
         }
     });

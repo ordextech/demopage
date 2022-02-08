@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
-import { getDocs,collection, where,  query, doc, deleteDoc } from "firebase/firestore";
+import { getDocs,collection, where,  query, doc, updateDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
 import Channels from './Channels';
 import Posts from "./Posts";
 import {auth} from "../services/firebase";
 import { useNavigate } from "react-router-dom";
+import Compose from "./modals/Compose";
 
 function Inbox() {
-    const email = auth.currentUser.email;   
+
+    const email = auth.currentUser !== null ? auth.currentUser.email : " ";   
     const [channels, setChannels] = useState([]);
     const [selectedChannel, setSelectedChannel] = useState("");
     const [showPosts, setShowPosts] = useState(false);
     const [showInbox, setShowInbox] = useState(false);
     const [inboxData, setInboxData] = useState([]);
+    const [compose, setCompose] = useState(false);
 
     const navigate = useNavigate();
 
@@ -47,7 +50,10 @@ function Inbox() {
 
     const getNotificationData = async() => {
         let items = [];
-        const q = query(collection(db, "inbox"), where("audienceId", "==", auth.currentUser.uid));
+        const queryConstraints = [];
+        queryConstraints.push(where("isDone", "==", false));
+        queryConstraints.push(where("audienceId", "==", auth.currentUser.uid));
+        const q = query(collection(db, "inbox"), ...queryConstraints);
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
             let data = doc.data();
@@ -56,15 +62,25 @@ function Inbox() {
         setInboxData(items);
     }
 
-    const redirectToSource = async(recordId, postId, channelId) => {
-        deleteDoc(doc(db, "inbox", recordId)).then(() => {
-            const channelData = channels.filter((channelItem) => {
-                return channelItem.id === channelId
-            });
-            navigate('/viewpost', { state : {
-                postId: postId,
-                channel : channelData[0]
-            }})
+    // const redirectToSource = async(recordId, postId, channelId) => {
+    //     deleteDoc(doc(db, "inbox", recordId)).then(() => {
+    //         const channelData = channels.filter((channelItem) => {
+    //             return channelItem.id === channelId
+    //         });
+    //         navigate('/viewpost', { state : {
+    //             postId: postId,
+    //             channel : channelData[0]
+    //         }})
+    //     }).catch((error) => {
+    //         console.log(error);
+    //     });
+    // }
+
+    const markAsDone = async(recordId) => {
+        updateDoc(doc(db, "inbox", recordId), {isDone : true}).then(() => {
+            setInboxData(inboxData.filter((item) => {
+                return item.id !== recordId
+            }));
         }).catch((error) => {
             console.log(error);
         });
@@ -84,20 +100,23 @@ function Inbox() {
                     {inboxData.map((inboxItem) => {
                         return(
                             <div>
-                                <div className="row" onClick={() => {redirectToSource(inboxItem.id, inboxItem.data.relationId, inboxItem.data.channelId)}}>
+                                <div className="row" >
                                     {inboxItem.data.relationType === "Post" ? 
-                                        <div>
+                                        <div className="col-md-9">
                                             <span>
                                                 {inboxItem.data.authorName} Added new Post to {inboxItem.data.channelName}
                                             </span>
                                         </div>
                                     :
-                                        <div>
+                                        <div className="col-md-9">
                                             <span>
                                                 {inboxItem.data.authorName} Added new comment on one of the post in {inboxItem.data.channelName}
                                             </span>
                                         </div>
                                     }
+                                    <div className="col-md-3">
+                                        <button className="btn btn-dark" onClick={() => {markAsDone(inboxItem.id)}}>Mark as Done</button>
+                                    </div>
                                 </div>
                                 <hr />
                             </div>
@@ -111,16 +130,17 @@ function Inbox() {
     return (
         <div>
             <div className="container homePage">
+                <div className="btn btn-dark float-center" onClick={() => {setCompose(true)}}>Start a Thread</div>
                 <div className="col-12">
                     <div className="row">
-                        <Channels channels = {channels} selectedChannel = {selectedChannel} viewPosts = {viewPosts} inbox = {true} viewInbox = {viewInbox}></Channels>
+                        <Channels channels = {channels} selectedChannel = {selectedChannel} viewPosts = {viewPosts} inbox = {true} viewInbox = {viewInbox} inboxCount = {inboxData.length}></Channels>
                         <div className= "col-md-6">
                             {showPosts && !showInbox ?
                                 <div className="container" style = {{cursor  : "pointer"}}>
                                     <Posts channel = {selectedChannel}/>
                                 </div>
                                 :
-                                <div className="container" style = {{cursor  : "pointer"}}>
+                                <div className="container">
                                     {InboxComponent}
                                 </div>
                             }
@@ -128,6 +148,9 @@ function Inbox() {
                     </div>
                 </div>
             </div>
+            {compose &&
+                <Compose compose = {compose} setCompose = {setCompose} />
+            }
         </div>
     );
 }

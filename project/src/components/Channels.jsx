@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import getNotificationCount from "./../hooks/getInboxData";
+import { auth } from '../services/firebase';
 
 function Channels(props) {
     
@@ -10,22 +10,14 @@ function Channels(props) {
         backgroundColor: 'black'
     };
 
-    const [inboxCount, setInboxCount] = useState("");
-
-    if(props.inbox && inboxCount == "")
-    {
-        getNotificationCount(localStorage.getItem("userId")).then((result) => {
-        setInboxCount(result);
-        });
-    }
-
     return (
         <div className="col-md-3" style={{borderRight  : "2px solid black"}}>
+            <div className = "my-3 fw-bold text-center">Hello, {auth.currentUser && auth.currentUser.displayName ? auth.currentUser.displayName : ""}</div>
             <span className="my-3 text-center"><h3>{props.inbox ? "" : "My Channels"}</h3></span>
             {props.inbox ? 
                 <div>
                     <div className={props.selectedChannel && props.selectedChannel.length !== 0 ? "text-center" :"fw-bold text-center"} style={{cursor : "pointer" }} onClick={() => {props.viewInbox()}}>
-                        Inbox - {inboxCount}
+                        Inbox - {props.inboxCount}
                     </div>
                 </div>
                 :
