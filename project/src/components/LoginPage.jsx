@@ -9,11 +9,20 @@ function LoginPage({setIsUserSignedIn})
     const loginAuth = firebase.auth();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
     
-    const addUser = async(userId, email) => {
+    const addUser = async(userId, email, userData) => {
         if((userId !== undefined || userId !== "") && (email !== undefined || email !== ""))
         {
-            const organizationDomain = email.split("@")[1];
+            const usersCollectionRef = collection(db, "users");
             const orgCollectionRef = collection(db, "organizations");
+            const organizationDomain = email.split("@")[1];
+
+            await addDoc(usersCollectionRef, {
+                name : userData.name,
+                uid : userId,
+                image : userData.url,
+                organizationDomain : organizationDomain
+            });
+
             const q = query(orgCollectionRef, where("domain", "==", organizationDomain));
             const querySnapshot = await getDocs(q);
             let data, id;
@@ -31,7 +40,7 @@ function LoginPage({setIsUserSignedIn})
                 }
             } else {
                 await addDoc(orgCollectionRef, {
-                    domain : email.split("@")[1],
+                    domain : organizationDomain,
                     users : userId
                 });
             }
@@ -45,7 +54,8 @@ function LoginPage({setIsUserSignedIn})
             if(res.additionalUserInfo.isNewUser)
             {
                 try {
-                    addUser(res.user.uid, res.user.email);
+                    let userData = {name : res.user.displayName, url : res.user.photoURL}
+                    addUser(res.user.uid, res.user.email, userData);
                 } 
                 catch (error) {
                     console.log(error);
