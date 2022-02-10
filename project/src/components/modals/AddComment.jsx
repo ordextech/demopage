@@ -13,6 +13,7 @@ function AddComment({postId,onHide})
             postId,
             authorName : auth.currentUser.displayName,
             authorId : auth.currentUser.uid,
+            addedOn : +new Date()
         });
         onHide();
     };

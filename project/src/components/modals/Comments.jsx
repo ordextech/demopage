@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from "react";
-import {addDoc, collection, getDocs} from "firebase/firestore";
+import {addDoc, collection, getDocs, query, where} from "firebase/firestore";
 import { auth, db } from "../../services/firebase";
 import { addToInbox } from "../../hooks/getInboxData";
 
@@ -9,7 +9,6 @@ function Comments({postId, onHide, channel})
     const [comment, setComment] = useState("");
     const [commentList, setCommentList] = useState([]);
     const commentsCollectionRef = collection(db,"comments");
-    const notificationRef = collection(db, "inbox");
     
     const submitComment = async () => {
         if(comment.trim() === "" || comment === null)
@@ -22,6 +21,7 @@ function Comments({postId, onHide, channel})
                 postId,
                 authorName : auth.currentUser.displayName,
                 authorId : auth.currentUser.uid,
+                addedOn : +new Date()
             });
             const domain = auth.currentUser.email.split("@")[1];
             const inboxData = {
@@ -38,13 +38,17 @@ function Comments({postId, onHide, channel})
         }   
     };
 
+    const getComments = async () => {
+        let items =[];
+        const q = query(commentsCollectionRef, where("postId", "==", postId));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            items.push({id : doc.id, data : doc.data()});
+        });
+        setCommentList(items);
+    };
+
     useEffect(() => {
-        const getComments = async () => {
-            const data = await getDocs(commentsCollectionRef);
-            setCommentList(data.docs.map((doc) => ({
-                ...doc.data(), id:doc.id
-            })));
-        };
         getComments();
     });
     return (

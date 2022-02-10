@@ -28,7 +28,8 @@ function CreatePost({isUserSignedIn})
                 body,
                 authorId : auth.currentUser.uid,
                 authorName : auth.currentUser.displayName,
-                channelId : channel.id
+                channelId : channel.id,
+                addedOn : +new Date()
             });
             const domain = auth.currentUser.email.split("@")[1];
             const inboxData = {

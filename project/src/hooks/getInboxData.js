@@ -36,7 +36,6 @@ export const addToInbox = async(inboxData) => {
     audience.forEach(async (user) => {
         if(user !== inboxData.authorId)
         {
-            console.log(inboxData);
             await addDoc(inboxRef, {
                 authorId : inboxData.authorId,
                 authorName : inboxData.authorName,
@@ -46,8 +45,9 @@ export const addToInbox = async(inboxData) => {
                 relationType : inboxData.relationType,
                 audienceId : user,
                 isDone : false,
-                mentioned : inboxData.mentionedUsers,
-                response : inboxData.attentionRequire
+                mentioned : inboxData.mentioned ?? "",
+                response : inboxData.response ?? "",
+                addedOn : +new Date()
             });
         }
     });

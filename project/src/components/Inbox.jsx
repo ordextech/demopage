@@ -6,6 +6,7 @@ import Posts from "./Posts";
 import {auth} from "../services/firebase";
 import { useNavigate } from "react-router-dom";
 import Compose from "./modals/Compose";
+import warning_img from "./../img/warning.png"
 
 function Inbox() {
 
@@ -49,7 +50,9 @@ function Inbox() {
     };
 
     const getNotificationData = async() => {
+        let normalPosts = [];
         let items = [];
+        let responseNeeded = [];
         const queryConstraints = [];
         queryConstraints.push(where("isDone", "==", false));
         queryConstraints.push(where("audienceId", "==", auth.currentUser.uid));
@@ -59,22 +62,30 @@ function Inbox() {
             let data = doc.data();
             items.push({id : doc.id, data : data})
         });
-        setInboxData(items);
+        //objs.sort((a, b) => a.last_nom.localeCompare(b.last_nom));
+        items = items.sort((a, b) => a.data.addedOn - b.data.addedOn);
+        responseNeeded = items.filter((post) => {
+            if(post.data.response.includes(auth.currentUser.uid))
+                return post
+        });
+        normalPosts = items.filter((post) => {
+            if(!post.data.response.includes(auth.currentUser.uid))
+                return post
+        });
+        setInboxData(responseNeeded.concat(normalPosts));
+        console.log(items);
     }
 
-    // const redirectToSource = async(recordId, postId, channelId) => {
-    //     deleteDoc(doc(db, "inbox", recordId)).then(() => {
-    //         const channelData = channels.filter((channelItem) => {
-    //             return channelItem.id === channelId
-    //         });
-    //         navigate('/viewpost', { state : {
-    //             postId: postId,
-    //             channel : channelData[0]
-    //         }})
-    //     }).catch((error) => {
-    //         console.log(error);
-    //     });
-    // }
+    const redirectToSource = async(recordId, postId, channelId) => {
+        const channelData = channels.filter((channelItem) => {
+            return channelItem.id === channelId
+        });
+        //markAsDone(recordId);
+        navigate('/viewpost', { state : {
+            postId: postId,
+            channel : channelData[0]
+        }})
+    }
 
     const markAsDone = async(recordId) => {
         updateDoc(doc(db, "inbox", recordId), {isDone : true}).then(() => {
@@ -98,26 +109,48 @@ function Inbox() {
                 <div className = "container">
                     <hr />
                     {inboxData.map((inboxItem) => {
+                        const mentionedUsers = inboxItem.data.mentioned;
+                        const responseRequested = inboxItem.data.response;
+                        let message;
+                        if(mentionedUsers.includes(auth.currentUser.uid))
+                        {
+                            message = inboxItem.data.authorName + " Mentioned you in a post of " + inboxItem.data.channelName;
+                        }
+                        else {
+                            message = inboxItem.data.authorName + " Added a new Post to " + inboxItem.data.channelName;
+                        }
                         return(
                             <div>
+                                {responseRequested.includes(auth.currentUser.uid) &&
+                                    <div className="d-flex">
+                                        <img src={warning_img} className="img-fluid  me-2" style={{width: "20px", height:"20px"}}/>
+                                        <p className="text-danger">Requested Response</p>
+                                    </div>
+                                }
                                 <div className="row" >
                                     {inboxItem.data.relationType === "Post" ? 
-                                        <div className="col-md-9">
+                                        <div className="col-md-12">
                                             <span>
-                                                {inboxItem.data.authorName} Added new Post to {inboxItem.data.channelName}
+                                                {message}
                                             </span>
                                         </div>
                                     :
-                                        <div className="col-md-9">
+                                        <div className="col-md-12">
                                             <span>
                                                 {inboxItem.data.authorName} Added new comment on one of the post in {inboxItem.data.channelName}
                                             </span>
                                         </div>
                                     }
-                                    <div className="col-md-3">
-                                        <button className="btn btn-dark" onClick={() => {markAsDone(inboxItem.id)}}>Mark as Done</button>
+                                </div>
+                                <div className="row">
+                                    <div className="my-3 col-md-6">
+                                        <button className="btn btn-dark btn-sm" onClick={() => {redirectToSource(inboxItem.id, inboxItem.data.relationId, inboxItem.data.channelId)}}>View Post</button>
+                                    </div>
+                                    <div className="my-3 col-md-6">
+                                        <button className="btn btn-dark btn-sm" onClick={() => {markAsDone(inboxItem.id)}}>Mark as Done</button>
                                     </div>
                                 </div>
+                                
                                 <hr />
                             </div>
                         );

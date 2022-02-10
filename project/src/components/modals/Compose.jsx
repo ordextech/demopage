@@ -58,11 +58,7 @@ function Compose(props) {
 
     const handlePost = async(e) => {
         e.preventDefault();
-        console.log(body);
-        console.log(atmentionUsers);
-        console.log(postTo);
-        console.log(notifyTo);
-        console.log(subject);
+
         if(postTo.length == 0)
         {
             alert('Please select a channel to Post')
@@ -91,7 +87,8 @@ function Compose(props) {
                     body,
                     authorId : auth.currentUser.uid,
                     authorName : auth.currentUser.displayName,
-                    channelId : channel.value
+                    channelId : channel.value,
+                    addedOn : +new Date()
                 });
                 const domain = auth.currentUser.email.split("@")[1];
                 const inboxData = {
@@ -127,15 +124,16 @@ function Compose(props) {
         setBody(content);
     }
 
-    let userOptions, channelOptions = [];
+    let userOptions, channelOptions, mentions = [];
 
     if(users.length > 0)
     {
-        let item = []
+        let item = [];
         users.forEach((user) => {
             if(user.uid !== auth.currentUser.uid)
             {
                 item.push({label : user.name, value : user.uid});
+                mentions.push({name: user.name, avatar: user.image, link: user.uid});
             }
         });
         userOptions= item;
@@ -143,7 +141,7 @@ function Compose(props) {
 
     if(channels.length > 0)
     {
-        let item = []
+        let item = [];
         channels.forEach((channel) => {
             item.push({label : channel.channelName, value : channel.id});
         });
@@ -152,43 +150,45 @@ function Compose(props) {
 
     return (
         <div>
-            <Modal
-            show={props.compose}
-            size="lg"
-            onHide={() => {props.setCompose(false)}}
-            aria-labelledby="example-custom-modal-styling-title"
-            modal-90w
-            >
-                <Modal.Header closeButton>
-                    <Modal.Title id="example-custom-modal-styling-title">
-                        New Thread
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <form>
-                    <div className="mb-3">
-                        <label className="form-label">To</label>
-                        <Select options={channelOptions} isMulti = {true} onChange = {handleTo} />
-                    </div>
-                    <div className="mb-3">
-                        <label className="form-label">Request response</label>
-                        <Select options={userOptions} isMulti = {true} onChange = {handleResponse} />
-                    </div>
-                    <div className="mb-3">
-                        <label className="form-label">Subject</label>
-                        <input type="text" value = {subject} className="form-control" onChange = {handleSubject}/>
-                    </div>
-                    <div className="mb-3">
-                        <label className="form-label">Body</label>
-                        <TextInput setContent = {setContent} addMentionedUsers = {addMentionedUsers} mentions = {users} />
-                    </div>
-                    <div className="mb-3">
-                        <button type='submit' className='btn btn-dark' onClick = {handlePost}>Post</button>                        
-                    </div>
-                    </form>
-                    
-                </Modal.Body>
-            </Modal>
+            {mentions.length > 0 &&
+                <Modal
+                show={props.compose}
+                size="lg"
+                onHide={() => {props.setCompose(false)}}
+                aria-labelledby="example-custom-modal-styling-title"
+                modal-90w
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title id="example-custom-modal-styling-title">
+                            New Thread
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <form>
+                            <div className="mb-3">
+                                <label className="form-label">To</label>
+                                <Select options={channelOptions} isMulti = {true} onChange = {handleTo} />
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Request response</label>
+                                <Select options={userOptions} isMulti = {true} onChange = {handleResponse} />
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Subject</label>
+                                <input type="text" value = {subject} className="form-control" onChange = {handleSubject}/>
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Body</label>                         
+                                    <TextInput setContent = {setContent} addMentionedUsers = {addMentionedUsers} mentions = {mentions} />
+                            </div>
+                            <div className="mb-3">
+                                <button type='submit' className='btn btn-dark' onClick = {handlePost}>Post</button>                        
+                            </div>
+                        </form>
+                        
+                    </Modal.Body>
+                </Modal>
+            }
         </div>
     );
 }
