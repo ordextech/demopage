@@ -73,7 +73,6 @@ function Inbox() {
                 return post
         });
         setInboxData(responseNeeded.concat(normalPosts));
-        console.log(items);
     }
 
     const redirectToSource = async(recordId, postId, channelId) => {

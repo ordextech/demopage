@@ -22,7 +22,7 @@ export default function TextInput(props) {
   const [open, setOpen] = useState(false);
   const [suggestions, setSuggestions] = useState(props.mentions);
   const [content, setContent] = useState("");
-  const [mentionPrefix, setmentionPrefix] = useState("@")
+  const [mentionPrefix, setmentionPrefix] = useState("@");
 
   const { MentionSuggestions, plugins } = useMemo(() => {
     const mentionPlugin = createMentionPlugin({

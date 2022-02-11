@@ -21,36 +21,27 @@ const getNotificationCount = async(userId) => {
 }
 
 export const addToInbox = async(inboxData) => {
-    const orgCollectionRef = collection(db, "organizations");
-    const inboxRef = collection(db, "inbox");
-    const q = query(orgCollectionRef, where("domain", "==", inboxData.organizationDomain));
+    const preferenceCollectionRef = collection(db, "preferences");
+    const q = query(preferenceCollectionRef, where("channelId", "==", inboxData.channelId));
     const querySnapshot = await getDocs(q);
-    let data;
+    let channelPreference = [];
     if (querySnapshot.size > 0) {
         querySnapshot.forEach((doc) => {
-            data = doc.data();
+            channelPreference.push(doc.data())
         }); 
     }
-    const audience = data.users.split(",");
- 
-    audience.forEach(async (user) => {
-        if(user !== inboxData.authorId)
-        {
-            await addDoc(inboxRef, {
-                authorId : inboxData.authorId,
-                authorName : inboxData.authorName,
-                channelId : inboxData.channelId,
-                channelName : inboxData.channelName,
-                relationId : inboxData.sourceId,
-                relationType : inboxData.relationType,
-                audienceId : user,
-                isDone : false,
-                mentioned : inboxData.mentioned ?? "",
-                response : inboxData.response ?? "",
-                addedOn : +new Date()
-            });
-        }
-    });
+    if(channelPreference.length > 0)
+    {
+        let onlyInvolved, onlyMentioned, allNotifications;
+        let audience = [];
+        onlyInvolved = channelPreference[0].onlyInvolved.split();
+        onlyMentioned = channelPreference[0].onlyMentioned.split();
+        allNotifications = channelPreference[0].allNotifications.split();
+        /*To be implemented....*/
+    }
+    else {
+        console.log("Something went wrong");
+    }
 }
 
 export const getOrgUsers = async(orgDomain) => {

@@ -14,10 +14,15 @@ function Compose(props) {
     const [users, setUsers] = useState([]);
     const [channels, setChannels] = useState([]);
     const [postTo, setPostTo] = useState();
-    const [notifyTo, setNotifyTo] = useState();
+    const [notifyTo, setNotifyTo] = useState([]);
+    const [selectedValue, setSelectedValue] = useState([]);
     
     const addMentionedUsers = (body) => {
         setAtmentionUsers(atmentionUsers.concat(body));
+    }
+
+    const doubleAtMention = (options) => {
+        setSelectedValue(notifyTo.concat(options));
     }
 
     const email = auth && auth.currentUser ? auth.currentUser.email : "";
@@ -171,7 +176,7 @@ function Compose(props) {
                             </div>
                             <div className="mb-3">
                                 <label className="form-label">Request response</label>
-                                <Select options={userOptions} isMulti = {true} onChange = {handleResponse} />
+                                <Select options={userOptions} isMulti = {true} onChange = {handleResponse} defaultValue = {selectedValue} />
                             </div>
                             <div className="mb-3">
                                 <label className="form-label">Subject</label>
@@ -179,7 +184,7 @@ function Compose(props) {
                             </div>
                             <div className="mb-3">
                                 <label className="form-label">Body</label>                         
-                                    <TextInput setContent = {setContent} addMentionedUsers = {addMentionedUsers} mentions = {mentions} />
+                                    <TextInput setContent = {setContent} addMentionedUsers = {addMentionedUsers} mentions = {mentions} doubleAtMention = {doubleAtMention} />
                             </div>
                             <div className="mb-3">
                                 <button type='submit' className='btn btn-dark' onClick = {handlePost}>Post</button>                        
