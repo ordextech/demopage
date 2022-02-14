@@ -64,8 +64,9 @@ function Channels(props) {
                     </div>
                 );
             })}
+            {console.log(orgMembers)}
             { orgMembers && showModal &&
-                <CreateChannel showModal = {showModal} setShowModal = {setShowModal} orgMembers = {orgMembers}/>
+                <CreateChannel showModal = {showModal} setShowModal = {setShowModal} orgMembers = {orgMembers} getUsers = {getUsers}/>
             }
         </div>
     );

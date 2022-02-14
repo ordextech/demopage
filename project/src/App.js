@@ -28,43 +28,9 @@ function App()
   };
   return (
     <Router>
-      <nav className="navbar navbar-expand-md shadow mb-5">
-        <div className="container-md">
-            <div className="navbar-brand col-2"><img src={logo} alt={'logo'} className='img-fluid' /></div>
-
-            <button className="navbar-toggler bg-light navbar-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span className="navbar-toggler-icon"></span>
-            </button>
-
-            <div className="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
-            <ul className="navbar-nav align-items-center">
-              <li>
-                    <Link className="nav-link active" to="/">Home</Link>
-              </li>
-              { !isUserSignedIn ? (
-                <li>
-                <Link to="/login" className="nav-link">
-                  <button className='btn btn-log'>
-                  <i className="fas fa-sign-in-alt me-2"></i>Login</button>
-                </Link>
-                </li>
-              ) : (
-                <>
-                  
-                  <li>
-                    <Link to="/inbox" className="nav-link">Inbox</Link>
-                  </li>
-                  <li><button className='btn btn-log' onClick={signUserOut}>
-                  <i className="fas fa-sign-out-alt me-2"></i>Log Out</button></li>
-                </>
-              )}
-            </ul>
-            </div>
-        </div>
-      </nav>
       <Routes>
-        <Route path="/" element={<HomePage isUserSignedIn={isUserSignedIn}/>}/>
-        <Route path="/inbox" element={<Inbox isUserSignedIn={isUserSignedIn}/>}/>
+        {/* <Route path="/" element={<HomePage isUserSignedIn={isUserSignedIn}/>}/> */}
+        <Route path="/" element={<Inbox isUserSignedIn={isUserSignedIn}/>}/>
         <Route path="/createpost" element={<CreatePost isUserSignedIn={isUserSignedIn}/>}/>
         <Route path="/viewpost" element={<ViewPost postId/>}/>
         <Route path="/login" element={<LoginPage setIsUserSignedIn={setIsUserSignedIn}/>}/>

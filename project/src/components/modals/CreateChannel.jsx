@@ -7,6 +7,7 @@ import {auth, db} from "../../services/firebase"
 
 function CreateChannel(props) {
 
+    console.log(props);
     const [forumName, setForumName] = useState("");
     const [forumDescription, setForumDescription] = useState("");
     const [privateForum, setPrivateForum] = useState("");
@@ -47,18 +48,18 @@ function CreateChannel(props) {
                 privateForum : privateForum
             });
 
-            let audience = [];
+            let audience = [authorId];
 
             if(customMembers.length > 0)
             {
-                audience.push(authorId);
                 customMembers.forEach((member) => {
                     audience.push(member.value)
                 })
             }
             else {
                 props.orgMembers.forEach((member) => {
-                    audience.push(member.userInfo.uid);
+                    if(member.userInfo.uid !== authorId)
+                        audience.push(member.userInfo.uid);
                 })
             }
             
@@ -67,13 +68,15 @@ function CreateChannel(props) {
                 {
                     //Adding a new channel to user collection
                     let addChannel;
-                    if(member.channels === null || member.channels === undefined)
+
+                    if(member.userInfo.channels)
                     {
-                        addChannel = newChannel.id
+                        addChannel =  member.userInfo.channels + ", " + newChannel.id;
                     }
                     else {
-                        addChannel =  addChannel + ", " + newChannel.id;
-                    } 
+                        addChannel = newChannel.id
+                    }
+        
                     try{
                         await updateDoc(doc(db, "users", member.id), {channels : addChannel})
                     }  
@@ -89,7 +92,7 @@ function CreateChannel(props) {
             const preferencesCollectionRef = collection(db, "preferences");
             try{
                 await addDoc(preferencesCollectionRef, {
-                    channelId : author,
+                    channelId : newChannel.id,
                     onlyMentioned : audience.join(),
                     onlyInvolved : null,
                     allNotifications : null,
@@ -101,7 +104,8 @@ function CreateChannel(props) {
                 console.log(error);
             }
 
-            props.setShowModal(false)
+            props.getUsers()
+            props.setShowModal(false);
         }
     }
 
@@ -159,15 +163,15 @@ function CreateChannel(props) {
                         </div>
                         <div className="mb-3">
                             <label className="form-label">Add Members</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="members" id="allMembers" onChange={handleMembers} value = {0}/>
-                                <label class="form-check-label">
+                            <div className="form-check">
+                                <input className="form-check-input" type="radio" name="members" id="allMembers" onChange={handleMembers} value = {0}/>
+                                <label className="form-check-label">
                                     Add All members of Organization ({props.orgMembers.length})
                                 </label>
                                 </div>
-                                <div class="form-check">
-                                <input class="form-check-input" type="radio" name="members" id="selectedMembers" onChange={handleMembers} value = {1} />
-                                <label class="form-check-label">
+                                <div className="form-check">
+                                <input className="form-check-input" type="radio" name="members" id="selectedMembers" onChange={handleMembers} value = {1} />
+                                <label className="form-check-label">
                                     Choose People to add
                                 </label>
                                 {showMembers &&
@@ -179,15 +183,15 @@ function CreateChannel(props) {
                         </div>
                         <div className="mb-3">
                             <label className="form-label">Privacy</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="forumPrivacy" id="publicForum" onChange={handlePrivacy} value = {false} />
-                                <label class="form-check-label">
+                            <div className="form-check">
+                                <input className="form-check-input" type="radio" name="forumPrivacy" id="publicForum" onChange={handlePrivacy} value = {false} />
+                                <label className="form-check-label">
                                     Public
                                 </label>
                                 </div>
-                                <div class="form-check">
-                                <input class="form-check-input" type="radio" name="forumPrivacy" id="privateForum" onChange={handlePrivacy} value = {true} />
-                                <label class="form-check-label">
+                                <div className="form-check">
+                                <input className="form-check-input" type="radio" name="forumPrivacy" id="privateForum" onChange={handlePrivacy} value = {true} />
+                                <label className="form-check-label">
                                     Private
                                 </label>
                             </div>

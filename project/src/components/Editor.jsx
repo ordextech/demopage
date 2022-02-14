@@ -27,7 +27,7 @@ export default function TextInput(props) {
   const { MentionSuggestions, plugins } = useMemo(() => {
     const mentionPlugin = createMentionPlugin({
       entityMutability: 'IMMUTABLE',
-      mentionPrefix: "",
+      mentionPrefix: "@",
       supportWhitespace: true,
       //mentionTrigger : ["@", "#", "@@"]
     });
