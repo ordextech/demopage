@@ -1,0 +1,75 @@
+*,
+*:before,
+*:after {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  /* overflow-y: hidden; */
+}
+.arrow{
+    cursor: pointer;
+}
+.channels{
+    /* margin: 1px; */
+    padding: 15px;
+    border: 2px solid #000;
+    height: 100vh;
+}
+.all_channels ul{
+    cursor: pointer;
+}
+.all_channels ul li:active{
+    background-color: #e0e0e0;
+}
+.list-group-flush>.list-group-item {
+    border-width: 0;
+}
+.list-group-item {
+    padding: 0.2rem 0rem;
+}
+.inbox .badge {
+    padding: 0.55em 0.75em;
+    font-size:1em;
+}
+.big-col{
+    width: 14%;
+}
+
+/* Modal */
+.modal-content {
+    border: 2px solid rgb(0 0 0) !important;
+    box-shadow: 0 0.5rem 2rem #969696;
+}
+.modal-body {
+    padding: 0rem;
+}
+.modal-body li:hover, .dropdown-menu .list-group-item:hover{
+    background-color: #e0e0e0;
+}
+.modal-backdrop {
+    opacity:1 !important;
+    background-color: transparent !important;
+}
+
+/* Form */
+.form-control:focus {
+    border-color: #818181;
+    box-shadow: none;
+}
+
+/* dropdown */
+.dropdown:hover .dropdown-menu{
+    display: block !important;
+}
+.dropdown-menu {
+    border: 1px solid #000 !important;
+    min-width: 270px !important;
+    padding: 0 !important;
+    right: 15px !important;
+}
+.dropdown-menu li:not(:last-child){
+    border-bottom: 1px solid #000;
+}
+.dropdown-menu .list-group-item{
+    padding: 0.5rem;
+}

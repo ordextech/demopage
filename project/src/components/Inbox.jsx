@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
-import { getDocs,collection, where,  query, doc, updateDoc } from "firebase/firestore";
-import { db } from "../services/firebase";
-import Channels from './Channels';
-import Posts from "./Posts";
-import {auth} from "../services/firebase";
+import React, { useState, useEffect } from "react";
+import "./style.css";
+import Channels from "./Channels";
+import { getDocs,collection, where,  query, doc, updateDoc, documentId } from "firebase/firestore";
+import {auth, db} from "../services/firebase";
 import { useNavigate } from "react-router-dom";
 import Compose from "./modals/Compose";
-import warning_img from "./../img/warning.png"
+import Overlay from "./Overlay";
 
-function Inbox() {
+const Inbox = () => {
 
     const email = auth.currentUser !== null ? auth.currentUser.email : " ";   
     const [channels, setChannels] = useState([]);
@@ -17,6 +16,7 @@ function Inbox() {
     const [showInbox, setShowInbox] = useState(false);
     const [inboxData, setInboxData] = useState([]);
     const [compose, setCompose] = useState(false);
+    const [inboxAudience, setInboxAudience] = useState([]);
 
     const navigate = useNavigate();
 
@@ -35,17 +35,33 @@ function Inbox() {
     useEffect(() => {
         getMyChannels();
         getNotificationData();
+        setUserData();
     },[]);
 
     const getMyChannels = async () => {
-        let items =[];
-        const q = query(collection(db, "channels"), where("channelDomain", "==", 
-    email !== null ? email.split("@")[1]  :""));
-        const querySnapshot = await getDocs(q);
+        let userChannels;
+        let items = [];
+        const usersCollectionRef = collection(db, "users");
+        let userQuery = query(usersCollectionRef, where ("uid", "==", auth.currentUser.uid));
+        const querySnapshot = await getDocs(userQuery);
         querySnapshot.forEach((doc) => {
             let data = doc.data();
-            items.push({id : doc.id, channelName : data.channelName});
+            userChannels = data.channels;
         });
+
+        if(userChannels)
+        {
+            let channelList = userChannels.split(",")
+            const channelsCollectionRef = collection(db, "channels");
+            channelList.forEach(async (channel) => {
+                let Query = query(channelsCollectionRef, where (documentId(), "==", channel.trim()));
+                const querySnapshot = await getDocs(Query);
+                querySnapshot.forEach((doc) => {
+                    items.push({id : doc.id, data : doc.data()});
+                });
+            });
+            //
+        }
         setChannels(items);
     };
 
@@ -62,7 +78,6 @@ function Inbox() {
             let data = doc.data();
             items.push({id : doc.id, data : data})
         });
-        //objs.sort((a, b) => a.last_nom.localeCompare(b.last_nom));
         items = items.sort((a, b) => a.data.addedOn - b.data.addedOn);
         responseNeeded = items.filter((post) => {
             if(post.data.response.includes(auth.currentUser.uid))
@@ -96,95 +111,100 @@ function Inbox() {
         });
     }
 
-    const InboxComponent = (
-        <div>
-            {inboxData.length === 0 ?
-                <div className = "container">
-                    <hr />
-                    You have reached inbox 0! 🎉
-                    <hr />
-                </div>
-                :
-                <div className = "container">
-                    <hr />
-                    {inboxData.map((inboxItem) => {
-                        const mentionedUsers = inboxItem.data.mentioned;
-                        const responseRequested = inboxItem.data.response;
-                        let message;
-                        if(mentionedUsers.includes(auth.currentUser.uid))
-                        {
-                            message = inboxItem.data.authorName + " Mentioned you in a post of " + inboxItem.data.channelName;
-                        }
-                        else {
-                            message = inboxItem.data.authorName + " Added a new Post to " + inboxItem.data.channelName;
-                        }
-                        return(
-                            <div>
-                                {responseRequested.includes(auth.currentUser.uid) &&
-                                    <div className="d-flex">
-                                        <img src={warning_img} className="img-fluid  me-2" style={{width: "20px", height:"20px"}}/>
-                                        <p className="text-danger">Requested Response</p>
-                                    </div>
-                                }
-                                <div className="row" >
-                                    {inboxItem.data.relationType === "Post" ? 
-                                        <div className="col-md-12">
-                                            <span>
-                                                {message}
-                                            </span>
-                                        </div>
-                                    :
-                                        <div className="col-md-12">
-                                            <span>
-                                                {inboxItem.data.authorName} Added new comment on one of the post in {inboxItem.data.channelName}
-                                            </span>
-                                        </div>
-                                    }
-                                </div>
-                                <div className="row">
-                                    <div className="my-3 col-md-6">
-                                        <button className="btn btn-dark btn-sm" onClick={() => {redirectToSource(inboxItem.id, inboxItem.data.relationId, inboxItem.data.channelId)}}>View Post</button>
-                                    </div>
-                                    <div className="my-3 col-md-6">
-                                        <button className="btn btn-dark btn-sm" onClick={() => {markAsDone(inboxItem.id)}}>Mark as Done</button>
-                                    </div>
-                                </div>
-                                
-                                <hr />
-                            </div>
-                        );
-                    })}
-                </div>
-            }
-        </div>
-    );
+    const setUserData = async() => {
+        if(inboxData.length > 0)
+        {
+            let users = [];
+            let items = [];
+            inboxData.forEach((message) => {
+                users.push(message.data.authorId);
+            });
+            const channelsCollectionRef = collection(db, "users");
+            let Query = query(channelsCollectionRef, where ("uid", "in", [ ...new Set(users)]));
+            const querySnapshot = await getDocs(Query);
+            querySnapshot.forEach((doc) => {
+                items.push({id : doc.id, data : doc.data()});
+            });
+            setInboxAudience(items);
+        }
+    }
 
-    return (
-        <div>
-            <div className="container homePage">
-                <div className="btn btn-dark float-center" onClick={() => {setCompose(true)}}>Start a Thread</div>
-                <div className="col-12">
-                    <div className="row">
-                        <Channels channels = {channels} selectedChannel = {selectedChannel} viewPosts = {viewPosts} inbox = {true} viewInbox = {viewInbox} inboxCount = {inboxData.length}></Channels>
-                        <div className= "col-md-6">
-                            {showPosts && !showInbox ?
-                                <div className="container" style = {{cursor  : "pointer"}}>
-                                    <Posts channel = {selectedChannel}/>
-                                </div>
-                                :
-                                <div className="container">
-                                    {InboxComponent}
-                                </div>
-                            }
+    const getUserImage = (userId) => {
+        let user = inboxAudience.filter((audience) => {
+            return audience.data.uid === userId
+        })
+        if(user.length > 0)
+        {
+            return user[0].data.image;
+        }
+        else {
+            console.log("userId")
+            return "";
+        }
+    }
+
+    return(
+        <>
+            <div className="col-11">
+                <div className="row">
+                    <div className="col-12 col-md-3 channels">
+                        <Channels channels = {channels}  setSelectedChannel = {setSelectedChannel} selectedChannel = {selectedChannel} inboxCount = {inboxData.length} />
+                    </div>
+                    <div className="col-12 col-md-9">
+                        <div className="container ">
+                            <div className="d-flex ms-5 py-3">
+                                <h2 className="me-auto">test forum 1</h2>
+                                <Overlay userData = {auth.currentUser} channelData = {selectedChannel}/>
+                            </div>
+                            {inboxData.map((message) => {
+                                const responseRequested = message.data.response;
+                                const messageTime = new Date(message.data.addedOn).getDay();
+                                let timeStamp;
+                                if(messageTime === new Date().getDay()) 
+                                {
+                                    timeStamp = new Date(message.data.addedOn).toLocaleTimeString();
+                                }
+                                else {
+                                    timeStamp = new Date(message.data.addedOn).toLocaleDateString();
+                                }
+                                return (
+                                    <table className="table table-hover">
+                                        <tbody>
+                                            <tr className="align-middle">
+                                                <td>
+                                                    <div className="text-center">
+                                                        <img src= {getUserImage(message.data.authorId)} style={{width: "25%"}} className="img-fluid rounded-pill" />
+                                                    </div>
+                                                </td>
+                                                <td className="big-col">{message.data.authorName}</td>
+                                                <td>
+                                                    <div>
+                                                        <small className="text-muted"># {message.data.channelName}</small>
+                                                        <p className="text-wrap">{message.data.subject}</p>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {timeStamp}
+                                                </td>
+                                                {responseRequested.includes(auth.currentUser.uid) &&
+                                                    <td>
+                                                        <div className="btn btn-danger">
+                                                            Response Requested
+                                                        </div>
+                                                    </td>
+                                                }
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
             </div>
-            {compose &&
-                <Compose compose = {compose} setCompose = {setCompose} />
-            }
-        </div>
-    );
-}
+        </>
+    )
+};
+
 
 export default Inbox;

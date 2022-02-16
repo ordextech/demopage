@@ -1,75 +1,87 @@
 import React, {useState, useEffect} from 'react';
-import addButton from '../img/plusIcon.png';
+import "./style.css";
+import logo from "../img/ots.jpg";
 import CreateChannel from './modals/CreateChannel';
 import {addDoc, collection, getDocs, where,  query, updateDoc, doc} from "firebase/firestore";
-import {auth, db} from "./../services/firebase"
+import {auth, db} from "./../services/firebase";
 
-function Channels(props) {
-    
+const Channels = (props) => {
+
     const [showModal, setShowModal] = useState(false);
     const [orgMembers, setOrgMembers] = useState([]);
+    console.log(props)
 
     const email = auth && auth.currentUser ? auth.currentUser.email : "";
+    const orgDomain = email.split("@")[1];
 
     const getUsers = async() => {
         const usersCollectionRef = collection(db, "users");
-        const q = query(usersCollectionRef, where("organizationDomain", "==", email.split("@")[1]));
+        const q = query(usersCollectionRef, where("organizationDomain", "==", orgDomain));
         const querySnapshot = await getDocs(q);
-        //let data = {id : "", userInfo : ""};
         let items = [];
         if (querySnapshot.size > 0) {
             querySnapshot.forEach((doc) => {
-                // data.id = doc.id
-                // data.userInfo = doc.data();
                 items.push({id: doc.id, userInfo : doc.data()});
             }); 
         }
         setOrgMembers(items);
-        console.log(items);
+    }
+
+    const selectChannel = (channel) => {
+        props.setSelectedChannel(channel);
     }
 
     useEffect(() => {
         getUsers();
     }, [])
-    
 
-    const selectedPostStyle = {
-        textAlign: 'center',
-        cursor: 'pointer',
-        color: 'white',
-        backgroundColor: 'black'
-    };
-
-    return (
-        <div className="col-md-3" style={{borderRight  : "2px solid black"}}>
-            <div className = "my-3 fw-bold text-center">Hello, {auth.currentUser && auth.currentUser.displayName ? auth.currentUser.displayName : ""}</div>
-            <span className="my-3 text-center"><h3>{props.inbox ? "" : "My Channels"}</h3></span>
-            {props.inbox ? 
-                <div className = 'd-flex  justify-content-between my-3'>
-                    <div className={props.selectedChannel && props.selectedChannel.length !== 0 ? "text-center" :"fw-bold text-center"} style={{cursor : "pointer" }} onClick={() => {props.viewInbox()}}>
-                        Inbox - {props.inboxCount}
+    return(
+        <>
+            <div className="container">
+                <div className="hstack">
+                    <div className="col-2 me-3">
+                        <img src={logo} className="img-fluid rounded-pill" />
                     </div>
+                    <h2>Ordex</h2>
                 </div>
-                :
-                ""
-            }
-            <div className='d-flex  justify-content-between my-3'>
-                <span className = "fw-bold text-center">Forums</span>
-                <img src = {addButton} alt = "Create Forum" style={{cursor : "pointer"}} onClick = {() => {setShowModal(true)}}/>
-            </div>
-            {props.channels.map((item) => {
-                return (
-                    <div className="my-2" style={item.id === props.selectedChannel.id ? selectedPostStyle : {textAlign : "center", cursor : "pointer" }} onClick={() => {props.viewPosts(item)}}>
-                        {item.channelName}
+
+                <div className="my-4">
+                    <button className="btn btn-dark rounded-pill">Start a thread</button>
+                </div>
+                <div className="my-4 hstack inbox" onClick = {() => selectChannel([])}>
+                    <p className=  {props.selectedChannel.length > 0 ? "fs-5 me-3 arrow" : "fw-bold fs-5 me-3 arrow"} >Inbox</p>
+                    <span className=" badge bg-danger rounded-circle">{props.inboxCount}</span>   
+                </div>
+
+                <div className="all_channels">
+                    <div className="hstack align mb-2">
+                        <h5 className="me-auto">Channels</h5>
+                        <p className="fw-bold fs-3">+</p>
                     </div>
-                );
-            })}
-            {console.log(orgMembers)}
-            { orgMembers && showModal &&
-                <CreateChannel showModal = {showModal} setShowModal = {setShowModal} orgMembers = {orgMembers} getUsers = {getUsers}/>
-            }
-        </div>
-    );
-}
+                    <ul className="list-group list-group-flush">
+                        {props.channels.map((channel) => {
+                            let channelSelectedClass;
+                            if(channel.id === props.selectedChannel.id)
+                            {
+                                channelSelectedClass = "list-group-item d-flex justify-content-between align-baseline fw-bold";
+                            }
+                            else {
+                                channelSelectedClass = "list-group-item d-flex justify-content-between align-baseline"
+                            }
+                            return(
+                                <li className = {channelSelectedClass} onClick={() => {selectChannel(channel)}}>
+                                    {channel.data.channelName}
+                                    {/* <span className="badge bg-secondary">9</span> */}
+                                </li>
+                            )  
+                        })}
+                    </ul>
+                </div>
+
+            </div>
+        </>
+    )
+};
+
 
 export default Channels;
